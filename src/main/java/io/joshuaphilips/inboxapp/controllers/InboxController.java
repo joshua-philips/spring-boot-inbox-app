@@ -1,6 +1,5 @@
 package io.joshuaphilips.inboxapp.controllers;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,12 +12,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import io.joshuaphilips.inboxapp.folders.Folder;
 import io.joshuaphilips.inboxapp.folders.FolderRepository;
+import io.joshuaphilips.inboxapp.folders.FolderService;
 
 @Controller
 public class InboxController {
 
 	@Autowired
 	private FolderRepository folderRepository;
+
+	@Autowired
+	FolderService folderService;
 
 	@GetMapping("/")
 	public String homePage(@AuthenticationPrincipal OAuth2User principal, Model model) {
@@ -29,13 +32,11 @@ public class InboxController {
 
 			System.out.println(principal.getAttributes());
 
-			List<Folder> userFolders = new ArrayList<>();
-			userFolders.add(new Folder(userId, "Inbox", "blue"));
-			userFolders.add(new Folder(userId, "Sent", "green"));
-			userFolders.add(new Folder(userId, "Important", "yellow"));
-
-//			List<Folder> userFolders = folderRepository.findAllById(userId);
+			List<Folder> userFolders = folderRepository.findAllById(userId);
 			model.addAttribute("userFolders", userFolders);
+
+			List<Folder> defaultFolders = folderService.fetchDefaultFolders(userId);
+			model.addAttribute("defaultFolders", defaultFolders);
 
 			return "inbox-page";
 		}
