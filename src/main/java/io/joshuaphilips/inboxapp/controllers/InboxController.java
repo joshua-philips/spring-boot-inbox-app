@@ -16,10 +16,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 
-import io.joshuaphilips.inboxapp.email.Email;
-import io.joshuaphilips.inboxapp.email.EmailRepository;
+import io.joshuaphilips.inboxapp.email.EmailService;
 import io.joshuaphilips.inboxapp.emaillist.EmailListItem;
-import io.joshuaphilips.inboxapp.emaillist.EmailListItemKey;
 import io.joshuaphilips.inboxapp.emaillist.EmailListRepository;
 import io.joshuaphilips.inboxapp.folders.Folder;
 import io.joshuaphilips.inboxapp.folders.FolderRepository;
@@ -38,9 +36,9 @@ public class InboxController {
 	private FolderService folderService;
 
 	@Autowired
-	private EmailRepository emailRepository;
+	private EmailService emailService;
 
-	private static int count = 0;
+	static int count = 0;
 
 	@GetMapping("/")
 	public String homePage(@AuthenticationPrincipal OAuth2User principal, Model model,
@@ -60,6 +58,8 @@ public class InboxController {
 
 			List<Folder> defaultFolders = folderService.fetchDefaultFolders(userId);
 			model.addAttribute("defaultFolders", defaultFolders);
+
+			model.addAttribute("stats", folderService.mapCountToLabels(userId));
 
 			// Fetch messages
 			if (!StringUtils.hasText(folder)) {
@@ -82,32 +82,13 @@ public class InboxController {
 
 	public void initializeData() {
 		System.out.println("Saving to cassandra");
-		folderRepository.save(new Folder("joshua-philips", "Inbox", "blue"));
-		folderRepository.save(new Folder("joshua-philips", "Sent Items", "green"));
-		folderRepository.save(new Folder("joshua-philips", "Important", "yellow"));
+		folderRepository.save(new Folder("joshua-philips", "Work", "blue"));
+		folderRepository.save(new Folder("joshua-philips", "Friends", "green"));
+		folderRepository.save(new Folder("joshua-philips", "Family", "yellow"));
 
 		for (int i = 0; i < 10; i++) {
-
-			EmailListItemKey key = new EmailListItemKey();
-			key.setId("joshua-philips");
-			key.setLabel("Inbox");
-			key.setTimeUUID(Uuids.timeBased());
-
-			EmailListItem item = new EmailListItem();
-			item.setKey(key);
-			item.setTo(Arrays.asList("joshua-philips", "daniella"));
-			item.setSubject("Subject " + i);
-			item.setUnread(true);
-
-			Email email = new Email();
-			email.setId(key.getTimeUUID());
-			email.setFrom("joshua-philips");
-			email.setTo(item.getTo());
-			email.setSubject(item.getSubject());
-			email.setBody("Body " + i);
-
-			emailListRepository.save(item);
-			emailRepository.save(email);
+			emailService.sendEmail("joshua-philips", Arrays.asList("joshua-philips", "daniella"), "Subject " + i,
+					"Body " + i);
 		}
 	}
 }

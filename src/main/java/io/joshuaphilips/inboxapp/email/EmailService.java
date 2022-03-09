@@ -10,6 +10,7 @@ import com.datastax.oss.driver.api.core.uuid.Uuids;
 import io.joshuaphilips.inboxapp.emaillist.EmailListItem;
 import io.joshuaphilips.inboxapp.emaillist.EmailListItemKey;
 import io.joshuaphilips.inboxapp.emaillist.EmailListRepository;
+import io.joshuaphilips.inboxapp.folders.UnreadEmailStatsRepository;
 
 @Service
 public class EmailService {
@@ -19,6 +20,9 @@ public class EmailService {
 
 	@Autowired
 	private EmailListRepository emailListRepository;
+
+	@Autowired
+	private UnreadEmailStatsRepository unreadEmailStatsRepository;
 
 	public void sendEmail(String from, List<String> to, String subject, String body) {
 
@@ -33,10 +37,12 @@ public class EmailService {
 		to.forEach(toId -> {
 			EmailListItem item = createEmailListItem(to, subject, email, toId, "Inbox");
 			emailListRepository.save(item);
+			unreadEmailStatsRepository.incrementUnreadCount(toId, "Inbox");
 
 		});
 
 		EmailListItem senderItem = createEmailListItem(to, subject, email, from, "Sent Items");
+		senderItem.setUnread(false);
 		emailListRepository.save(senderItem);
 	}
 
