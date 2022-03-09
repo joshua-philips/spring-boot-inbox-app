@@ -83,7 +83,7 @@ public class InboxController {
 	public void initializeData() {
 		System.out.println("Saving to cassandra");
 		folderRepository.save(new Folder("joshua-philips", "Inbox", "blue"));
-		folderRepository.save(new Folder("joshua-philips", "Sent", "green"));
+		folderRepository.save(new Folder("joshua-philips", "Sent Items", "green"));
 		folderRepository.save(new Folder("joshua-philips", "Important", "yellow"));
 
 		for (int i = 0; i < 10; i++) {
