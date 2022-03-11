@@ -12,12 +12,17 @@ import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import io.joshuaphilips.inboxapp.email.Email;
 import io.joshuaphilips.inboxapp.email.EmailRepository;
+import io.joshuaphilips.inboxapp.emaillist.EmailListItem;
+import io.joshuaphilips.inboxapp.emaillist.EmailListItemKey;
+import io.joshuaphilips.inboxapp.emaillist.EmailListRepository;
 import io.joshuaphilips.inboxapp.folders.Folder;
 import io.joshuaphilips.inboxapp.folders.FolderRepository;
 import io.joshuaphilips.inboxapp.folders.FolderService;
+import io.joshuaphilips.inboxapp.folders.UnreadEmailStatsRepository;
 
 @Controller
 public class EmailViewController {
@@ -30,8 +35,15 @@ public class EmailViewController {
 	@Autowired
 	private EmailRepository emailRepository;
 
+	@Autowired
+	private EmailListRepository emailListRepository;
+
+	@Autowired
+	private UnreadEmailStatsRepository unreadEmailStatsRepository;
+
 	@GetMapping("/emails/{id}")
-	public String emailView(@AuthenticationPrincipal OAuth2User principal, Model model, @PathVariable UUID id) {
+	public String emailView(@AuthenticationPrincipal OAuth2User principal, Model model, @PathVariable UUID id,
+			@RequestParam String folder) {
 
 		if (principal == null || !StringUtils.hasText(principal.getAttribute("login"))) {
 			return "index";
@@ -46,8 +58,6 @@ public class EmailViewController {
 		List<Folder> defaultFolders = folderService.fetchDefaultFolders(userId);
 		model.addAttribute("defaultFolders", defaultFolders);
 
-		model.addAttribute("stats", folderService.mapCountToLabels(userId));
-
 		Optional<Email> optionalEmail = emailRepository.findById(id);
 		if (optionalEmail.isEmpty()) {
 			return "inbox-page";
@@ -57,6 +67,25 @@ public class EmailViewController {
 		String toIds = String.join(", ", email.getTo());
 		model.addAttribute("email", email);
 		model.addAttribute("toIds", toIds);
+
+		EmailListItemKey key = new EmailListItemKey();
+		key.setId(userId);
+		key.setLabel(folder);
+		key.setTimeUUID(email.getId());
+
+		Optional<EmailListItem> optionalEmailListItem = emailListRepository.findById(key);
+		if (optionalEmailListItem.isPresent()) {
+			EmailListItem emailListItem = optionalEmailListItem.get();
+			if (emailListItem.isUnread()) {
+				emailListItem.setUnread(false);
+				emailListRepository.save(emailListItem);
+
+				unreadEmailStatsRepository.decrementUnreadCount(userId, folder);
+			}
+		}
+
+		model.addAttribute("stats", folderService.mapCountToLabels(userId));
+
 		return "email-page";
 
 	}
