@@ -17,6 +17,7 @@
 <style type="text/css">
 .container {
 	display: grid;
+	margin-top: 20px;
 	grid-template-areas: "header header header" "nav content content"
 		"footer footer footer";
 	grid-template-columns: 200px 1fr 200px;
@@ -51,7 +52,12 @@ footer {
 <body>
 	<div class="container">
 		<header>
-			<h1>Hello, Name</h1>
+			<h3>
+				Inbox App <small class="text-muted">Welcome, </small> <small
+					class="text-muted"
+					th:text="${username}"
+				>User Name</small>
+			</h3>
 		</header>
 		<nav>
 			<div class="card">

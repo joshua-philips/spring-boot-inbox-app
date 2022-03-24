@@ -17,6 +17,7 @@
 <style type="text/css">
 .container {
 	display: grid;
+	margin-top: 20px;
 	grid-template-areas: "header header header" "nav content content"
 		"footer footer footer";
 	grid-template-columns: 200px 1fr 200px;
@@ -51,7 +52,12 @@ footer {
 <body>
 	<div class="container">
 		<header>
-			<h1>Hello, Name</h1>
+			<h3>
+				Inbox App <small class="text-muted">Welcome, </small> <small
+					class="text-muted"
+					th:text="${username}"
+				>User Name</small>
+			</h3>
 		</header>
 		<nav>
 			<div class="card">
@@ -82,7 +88,7 @@ footer {
 							th:each="message : ${emailList}"
 							th:href="@{'/emails/' + ${message.key.timeUUID}} + '?folder=' + ${folderName}"
 							class="list-group-item list-group-item-action"
-							th:classappend="${message.isUnread}? 'list-group-item-primary' : ''"
+							th:classappend="${message.isUnread} ? 'list-group-item-primary' : ''"
 						>
 							<div class="d-flex w-100 justify-content-between">
 								<h5

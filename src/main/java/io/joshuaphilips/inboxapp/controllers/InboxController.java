@@ -73,6 +73,7 @@ public class InboxController {
 					prettyTime.format(new Date(Uuids.unixTimestamp(emailItem.getKey().getTimeUUID())))));
 			model.addAttribute("emailList", emailList);
 			model.addAttribute("folderName", folder);
+			model.addAttribute("username", principal.getAttribute("name"));
 
 			return "inbox-page";
 		}

@@ -54,6 +54,8 @@ public class ComposeController {
 		List<String> uniqueToIds = splitIds(to);
 		model.addAttribute("toIds", String.join(", ", uniqueToIds));
 
+		model.addAttribute("username", principal.getAttribute("name"));
+
 		return "compose-page";
 	}
 
